@@ -1,4 +1,4 @@
-##################################################
+##################################f################
 ##                                              ##
 ## caGUI: A tcl/tk Interface to the ca package  ##
 ## Written by Angelos Markos; Autumn 2009       ##
@@ -7,15 +7,15 @@
 
 "caGUI" <- function()
 {
-  tclRequire("BWidget")
   require(tcltk2) || stop("Package tcltk2 is required")
   require(ca) || stop("Package ca is required")
+  tclRequire("BWidget")
 
   #Load ca data sets
 	data(smoke)
 	data(author)
 	data(wg93)
-	
+
 #
 # Main dialog window with title
 #
@@ -36,7 +36,7 @@
 #                345/2, 0), "+", round(ash/2 - 
 #                470/2, 0), sep = ""))
         
-  tkwm.title(tt,"caGUI - A Tcl/Tk GUI for the ca package")
+  tkwm.title(tt,"caGUI")
   tkwm.resizable(tt, 0, 0)
 #  tkgrab.set(tt)  
   Rico <- tk2ico.load(file.path(Sys.getenv("R_HOME"), "bin",
@@ -45,12 +45,56 @@
   tk2ico.destroy(Rico)
   rm(Rico)
   tkwm.deiconify(tt)
-    
+
+	frame1 <- tkframe(tt, relief="groove", borderwidth=1, background="darkgreen")
+
+	for (i in 1:length(.libPaths())) {
+		icnfnameR <- file.path(paste(.libPaths()[i],"/caGUI/statcount.gif",sep=""))
+		if (file.exists(icnfnameR)) {
+			icn <- tkimage.create("photo", file=icnfnameR)
+			Rlabel <- tklabel(frame1, image=icn, background="darkgreen")
+			oldopt <- options("htmlhelp")$htmlhelp
+			tkbind(Rlabel, "<Button-1>", function() help.start())
+			options("htmlhelp" = oldopt)
+		}
+#		icnfnameTk <- file.path(paste(.libPaths()[i],"/ade4TkGUI/tcltk.gif",sep=""))
+#		if (file.exists(icnfnameTk)) {
+#			icn <- tkimage.create("photo", file=icnfnameTk)
+#			TclTklabel <- tklabel(frame1, image=icn, background="white")
+#			tkbind(TclTklabel, "<Button-1>", function() print(help("tcltk")))
+#		}
+	}
+
+#	labh <- tklabel(frame1, bitmap="questhead", background="white")
+#	tkbind(labh, "<Button-1>", function() print(help("caGUI")))
+  titre <- tklabel(frame1,text="caGUI - A GUI for the ca package", font=tkfont.create(size=13,weight="bold"), foreground="white", background="darkgreen")
+	
+#	helplab <- tklabel(frame1,text="- Right click buttons for help - Double click in lists to select -", font="Times 12", foreground="dark green", background="white")
+
+#	frameCheck <- tkframe(frame1, relief="flat", borderwidth=0, background="white")
+#	if (show) show.cbut <- tklabel(frameCheck,text="T", background="white", font="system 10") else
+#		show.cbut <- tklabel(frameCheck,text="F", background="white", font="system 10")
+#	if (history) hist.cbut <- tklabel(frameCheck,text="T", background="white", font="system 10") else
+#		hist.cbut <- tklabel(frameCheck,text="F", background="white", font="system 10")
+#	tkgrid(show.cbut, sticky = "w")
+#	tkgrid(hist.cbut, sticky = "w")
+#
+#	tkgrid(frameCheck, Rlabel, titre, labh, TclTklabel, padx=10, sticky = "w")
+	tkgrid(Rlabel, titre, padx=5, sticky = "w")
+#	tkgrid(helplab, columnspan=4)
+	tkpack(frame1, expand="TRUE",fill="x")
+
+     
+# FONTS
+
+#  fontHeading <- tkfont.create(family="times",size=100,weight="bold")        # tkgrid(tklabel(tt,text="A Nice Big Font for the Heading",font=fontHeading))
+#  rb <- tclVar("local")
+
+  
 # Variables for text fields - ca
   dsvar <- tclVar()
   outputvar <- tclVar()
   nfvar <- tclVar()
-  sumvar <- tclVar("0")
   plot3dvar <- tclVar("0")
   rowsupvar <- tclVar()
   rowsupvarindex <- tclVar()
@@ -60,6 +104,7 @@
   rowsubvarindex <- tclVar()
   colsubvar <- tclVar()
   colsubvarindex <- tclVar()
+  otherVariable<-tclVar()
 
   lbl <- tclVar("both")
   contrib <- tclVar("none")
@@ -72,7 +117,11 @@
   colarrow <- tclVar("0")
   rowarrowlog <- FALSE
   colarrowlog <- FALSE
+  rbValue <- tclVar("local")
+  rb2Value <- tclVar("whitespace")
+  rb3Value <- tclVar("period")
   map <- tclVar("symmetric")
+  sumvar <- tclVar("full")
   rowwhat <- tclVar("all")
   colwhat <- tclVar("all")
   Axe1<-tclVar("1")
@@ -98,7 +147,7 @@
   dsvar2 <- tclVar()
   outputvar2 <- tclVar()
   nfvar2 <- tclVar()
-  sumvar2 <- tclVar("0")
+  sumvar2 <- tclVar("full")
   rowsupvar2 <- tclVar()
   rowsupvar2 <- tclVar()
   rowsupvarindex2 <- tclVar()
@@ -149,17 +198,17 @@
   tb2 <- tk2notetab(nb, "Multiple and Joint CA")
   tk2notetab.select(nb, "Simple CA")
   tk2notetab.text(nb) 
-  
+     
 #### Simple Correspondence Analysis #### 
-   
-
+                           
 # Title
 #
   TFrame <- tkframe(tb1,relief="groove")
- 
+
   # I/O, Supplementary, Subset
-  IOFrame <- tkframe(tb1, borderwidth=2,relief="groove")
-  tkgrid(tklabel(IOFrame,text="- Input & Output -", foreground="blue"), columnspan=5)
+  IOFrame <- tkframe(tb1, borderwidth=0,relief="groove")
+  
+  tkgrid(tklabel(IOFrame,text="- Input & Output -", foreground="darkgreen",font=tkfont.create(size=9,weight="bold")), columnspan=5)
   ds.entry <- tkentry(IOFrame, textvariable=dsvar)
   output.entry <- tkentry(IOFrame, textvariable=outputvar)
   tkinsert(output.entry, "end", "res")
@@ -167,14 +216,15 @@
   dfnc.label <- tklabel(IOFrame)
 	
   choosedf.but <- tkbutton(IOFrame, text="Select", command=function() SelectDataSet(ds.entry, dfnr.label, dfnc.label))
-  choosedfHlp.but <- tkbutton(IOFrame,text="?",command=function() tkmessageBox(title="Help",message="The input data set.",icon="info",type="ok"))
-  tkgrid(tklabel(IOFrame,text="Input data set : "), ds.entry, choosedf.but, choosedfHlp.but, dfnr.label, dfnc.label, sticky="w")
-	
+  choosedfHlp.but <- tkbutton(IOFrame,text="?",command=function() tkmessageBox(title="Help",message="Read a data set from command line.",icon="info",type="ok"))
+	readds.but <- tkbutton(IOFrame, text="Read", command=function() ReadDataSet(ds.entry, dfnr.label, dfnc.label))
+  readdfHlp.but <- tkbutton(IOFrame,text="?",command=function() tkmessageBox(title="Help",message="Read a data set from a file.",icon="info",type="ok"))
+  tkgrid(tklabel(IOFrame,text="Input data set : "), ds.entry, choosedf.but, choosedfHlp.but, readds.but, readdfHlp.but, dfnr.label, dfnc.label, sticky="w")
   tkgrid(tklabel(IOFrame,text="Output object name : "), output.entry, sticky="w")
 
   tkgrid(tklabel(IOFrame,text="    ")) # Blank line
 
-  tkgrid(tklabel(IOFrame,text="- Supplementary -", foreground="blue"), columnspan=5)
+  tkgrid(tklabel(IOFrame,text="- Supplementary -", foreground="darkgreen",font=tkfont.create(size=9,weight="bold")), columnspan=5)
   
   rowsup.entry <- tkentry(IOFrame, textvariable=rowsupvar)
   rowsup.label <- tklabel(IOFrame, width=4)
@@ -190,7 +240,7 @@
  
   tkgrid(tklabel(IOFrame,text="    ")) # Blank line
  
-  tkgrid(tklabel(IOFrame,text="- Subsets -", foreground="blue"), columnspan=5)
+  tkgrid(tklabel(IOFrame,text="- Subsets -", foreground="darkgreen",font=tkfont.create(size=9,weight="bold")), columnspan=5)
   
   rowsub.entry <- tkentry(IOFrame, textvariable=rowsubvar)
   rowsub.label <- tklabel(IOFrame, width=4)
@@ -206,17 +256,18 @@
   tkgrid(tklabel(IOFrame,text="Subset Columns : "), colsub.entry, ChooseColSub.but, ColSubHlp.but,colsub.label,sticky="w")
 
   tkgrid(IOFrame)  
- 
   tkgrid(tklabel(tb1,text="    ")) # Blank line
-  
+ 
+  #NoFrame <- tkframe(tb1, relief="groove", borderwidth=2)  
 # Main Options
-
-  NAFrame <- tkframe(tb1, relief="groove", borderwidth=2)
-  tkgrid(tklabel(NAFrame,text="        - Options -        ", foreground="blue"), columnspan=5, sticky="we")
+  
+  NAFrame <- tkframe(tb1, relief="groove", borderwidth=0)
+  tkgrid(tklabel(NAFrame,text="        - Options -        ", foreground="darkgreen",font=tkfont.create(size=9,weight="bold")), columnspan=4, sticky="we")
   nf.spin <- tkwidget(NAFrame, "SpinBox", textvariable = nfvar, editable = FALSE,  width="5", values = c("all", 1:1000),justify="right")
-
   DimHlp.but <- tkbutton(NAFrame, text="?", command=function() tkmessageBox(title="Help",message="Number of Dimensions to be included in the output; if empty, the maximum possible dimensions are included.",icon="info",type="ok"))
-  tkgrid(tklabel(NAFrame,text="Number of Dimensions : "),nf.spin,DimHlp.but,sticky="w")
+  tkgrid(tklabel(NAFrame,text="Number of Dimensions : "), columnspan=2, row=1, column=0,sticky="w")
+  tkgrid(nf.spin, row=1, column=2,sticky="w")
+  tkgrid(DimHlp.but, row=1, column=3,sticky="w")
   
   Axe.label<-tklabel(NAFrame,text="Plot Dimensions : ")
   Axe1.spin <-tkwidget(NAFrame, "SpinBox", textvariable = Axe1, editable = FALSE,  width="5", values = c(1:1000),justify="right")
@@ -224,32 +275,47 @@
   Axe3.spin <-tkwidget(NAFrame, "SpinBox", textvariable = Axe3, editable = FALSE,  width="5", values = c(1:1000),justify="right")
  
   AxesHlp.but <- tkbutton(NAFrame, text="?", command=function() tkmessageBox(title="Help",message="Indicates the dimensions to plot on horizontal and vertical axes respectively.",icon="info",type="ok"))
-  tkgrid(Axe.label,Axe1.spin,Axe2.spin,AxesHlp.but, sticky="w")
- 
+  tkgrid(Axe.label, columnspan=2, row=2, column=0,sticky="w")
+  tkgrid(Axe1.spin, row=2, column=2,sticky="w")
+  tkgrid(Axe2.spin, row=2, column=3,sticky="w")
+  tkgrid(AxesHlp.but, row=2, column=4,sticky="w")
+
   plot3d.check <- tkcheckbutton(NAFrame)
   tkconfigure(plot3d.check,variable=plot3dvar)
   ZAxisHlp.but <- tkbutton(NAFrame, text="?", command=function() tkmessageBox(title="Help",message="Indicates the dimension to plot on the depth axis (3D must must be checked).",icon="info",type="ok"))
+  Td <- tklabel(NAFrame,text="Plot 3D :")
+  T3d <- tklabel(NAFrame,text="3rd Axis:")
 
-  Td <- tklabel(NAFrame,text="                                               Plot 3D :")
-
-  tkgrid(Td,plot3d.check,Axe3.spin,ZAxisHlp.but,sticky="w")
- 
+  tkgrid(Td,sticky="e",column=0,row=3)
+  tkgrid(plot3d.check,sticky="w",column=1,row=3)
+  tkgrid(T3d,sticky="w",column=2,row=3) 
+  tkgrid(Axe3.spin,sticky="w",column=3,row=3)
+  tkgrid(ZAxisHlp.but,sticky="w",column=4,row=3)
+#  tkgrid(tklabel(NAFrame, text = "     "))
+#  tkgrid(plot3dFrame)
   tkgrid(tklabel(NAFrame, text = "     "))
                                                                    
-  summary.check <- tkcheckbutton(NAFrame)
-  tkconfigure(summary.check,variable=sumvar)
-#  SumHlp.but <- tkbutton(NAFrame, text="?", command=function() tkmessageBox(title="Help",message="Specifies if a summary of the results will be produced.",icon="info",type="ok"))
-  tkgrid(tklabel(NAFrame, text="Show Summary : "), summary.check, sticky="w")
-  tkgrid(tklabel(NAFrame,text="    ")) # Blank line
+#  summary.check <- tkcheckbutton(NAFrame)
+#  tkconfigure(summary.check,variable=sumvar)
+# #tkgrid(tklabel(NAFrame, text="Show Summary : "), summary.check, sticky="w")
+#  tkgrid(tklabel(NAFrame,text="    ")) # Blank line
 
+  sumtypes <- c("full","brief","none")
+  summary.cb <- tkwidget(NAFrame, "ComboBox", editable = FALSE, values = sumtypes) 
+  tkconfigure(summary.cb, textvariable = sumvar, width="5")
+#  sumHlp.but <- tkbutton(NAFrame, text="?", command=function() tkmessageBox(title="Help",message="Output type.",icon="info",type="ok"))
+ # tkgrid()
+  tkplace(tklabel(NAFrame, text="Numeric Output : "), relx = 0.25, rely = 0.81, anchor = "sw")
+  tkplace(summary.cb, relx = 0.75, rely = 0.81, anchor = "sw")
+  
   tkgrid(tklabel(NAFrame, text = "     "))
-
+  tkgrid(tklabel(NAFrame, text = "     "))
   Options.but <- tkbutton(NAFrame, text="Graphical Options", command=function() OnPlotCA())
-  tkplace(Options.but, relx = 0.35, rely = 0.99, anchor = "sw")
+  tkplace(Options.but, relx = 0.35, rely = 1.00, anchor = "sw")
  
   tkgrid(NAFrame)
-          
-  tkgrid(tklabel(tb1,text="    ")) # Blank line
+  
+#  tkgrid(tklabel(tb1,text="    ")) # Blank line
 
 
 #### Multiple Correspondence Analysis #### 
@@ -259,8 +325,8 @@
 TFrame2 <- tkframe(tb2, relief="groove")
 
 # I/O, Supplementary, Subset
-IOFrame2 <- tkframe(tb2, relief="groove", borderwidth=2)
-tkgrid(tklabel(IOFrame2,text="- Input & Output -", foreground="blue"), columnspan=5)
+IOFrame2 <- tkframe(tb2, relief="groove", borderwidth=0)
+tkgrid(tklabel(IOFrame2,text="- Input & Output -", foreground="darkgreen",font=tkfont.create(size=9,weight="bold")), columnspan=5)
 ds.entry2 <- tkentry(IOFrame2, textvariable=dsvar2)
 output.entry2 <- tkentry(IOFrame2, textvariable=outputvar2)
 tkinsert(output.entry2, "end", "res")
@@ -268,13 +334,16 @@ dfnr.label2 <- tklabel(IOFrame2, width=4)
 dfnc.label2 <- tklabel(IOFrame2, width=4)
 choosedf.but2 <- tkbutton(IOFrame2, text="Select", command=function() SelectDataSet(ds.entry2, dfnr.label2, dfnc.label2))
 choosedfHlp.but2 <- tkbutton(IOFrame2,text="?",command=function() tkmessageBox(title="Help",message="The input data set.",icon="info",type="ok"))
-tkgrid(tklabel(IOFrame2,text="Input data set : "), ds.entry2, choosedf.but2, choosedfHlp.but2, dfnr.label2, dfnc.label2, sticky="w")
+readds.but2 <- tkbutton(IOFrame2, text="Read", command=function() ReadDataSet(ds.entry2, dfnr.label2, dfnc.label2))
+readdfHlp.but2 <- tkbutton(IOFrame2,text="?",command=function() tkmessageBox(title="Help",message="Read a data set from a file.",icon="info",type="ok"))
+
+tkgrid(tklabel(IOFrame2,text="Input data set : "), ds.entry2, choosedf.but2, choosedfHlp.but2, readds.but2, readdfHlp.but2,dfnr.label2, dfnc.label2, sticky="w")
 	
 tkgrid(tklabel(IOFrame2,text="Output object name : "), output.entry2, sticky="w")
 
 tkgrid(tklabel(IOFrame2,text="    ")) # Blank line
    
-tkgrid(tklabel(IOFrame2,text="- Supplementary -", foreground="blue"),columnspan=5)
+tkgrid(tklabel(IOFrame2,text="- Supplementary -", foreground="darkgreen",font=tkfont.create(size=9,weight="bold")),columnspan=5)
   
 colsup.entry2 <- tkentry(IOFrame2, textvariable=colsupvar2)
 colsup.label2 <- tklabel(IOFrame2, width=4)
@@ -285,7 +354,7 @@ tkgrid(tklabel(IOFrame2,text="Supplementary Columns : "), colsup.entry2, ChooseC
   
 tkgrid(tklabel(IOFrame2,text="    ")) # Blank line
 
-tkgrid(tklabel(IOFrame2,text="- Subsets -", foreground="blue"), columnspan=5)
+tkgrid(tklabel(IOFrame2,text="- Subsets -", foreground="darkgreen",font=tkfont.create(size=9,weight="bold")), columnspan=5)
   
 colsub.entry2 <- tkentry(IOFrame2, textvariable=colsubvar2)
 colsub.label2 <- tklabel(IOFrame2, width=4)
@@ -297,27 +366,31 @@ tkgrid(tklabel(IOFrame2,text="Subset Columns : "), colsub.entry2, ChooseColSub.b
 tkgrid(IOFrame2)
 
 tkgrid(tklabel(tb2,text="    ")) # Blank line
-  
+tkgrid(tklabel(tb2,text="    ")) # Blank line  
 # Main Options
-NAFrame2 <- tkframe(tb2, relief="groove", borderwidth=2)
-tkgrid(tklabel(NAFrame2,text="        - Options -        ", foreground="blue"), columnspan=5, sticky="we")
+NAFrame2 <- tkframe(tb2, relief="groove", borderwidth=0)
+tkgrid(tklabel(NAFrame2,text="        - Options -        ", foreground="darkgreen",font=tkfont.create(size=9,weight="bold")), columnspan=4, sticky="we")
 
-MFrame <- tkframe(NAFrame2, relief="groove")
+#MFrame <- tkframe(NAFrame2, relief="groove")
 # Combobox Lambda
 items <- c("Indicator", "Burt", "Adjusted", "JCA")
-cb <- tkwidget(MFrame, "ComboBox", editable = FALSE, values = items) 
+cb <- tkwidget(NAFrame2, "ComboBox", editable = FALSE, values = items) 
 tkconfigure(cb, textvariable = lambda, width=10,justify="center")
   
-ComboHlp.but <- tkbutton(MFrame, text="?", command=function() tkmessageBox(title="Help",message="Scaling method. Using JCA results in a joint correspondence analysis using iterative adjusment of the Burt matrix in the solution space.",icon="info",type="ok"))
-tkgrid(tklabel(MFrame,text="Scaling method : "),cb,ComboHlp.but, sticky="w")
- 
-tkgrid(MFrame)
-  
-tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
+ComboHlp.but <- tkbutton(NAFrame2, text="?", command=function() tkmessageBox(title="Help",message="Scaling method. Using JCA results in a joint correspondence analysis using iterative adjusment of the Burt matrix in the solution space.",icon="info",type="ok"))
+
+tkgrid(tklabel(NAFrame2,text="Scaling method : "), row=1, column=0,sticky="w") 
+tkgrid(cb, row=1, columnspan=2,column=1,sticky="w")
+tkgrid(ComboHlp.but,row=1,column=2,sticky="e",pady=7) 
+#tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
  
 nf.spin2 <- tkwidget(NAFrame2, "SpinBox", textvariable = nfvar2, editable = FALSE,  width="5", values = c("all", 1:1000),justify="right")
 DimHlp.but2 <- tkbutton(NAFrame2, text="?", command=function() tkmessageBox(title="Help",message="Number of dimensions to be included in the output; if empty, the maximum possible dimensions are included.",icon="info",type="ok"))
-tkgrid(tklabel(NAFrame2,text="Number of Dimensions : "), nf.spin2, DimHlp.but2,sticky="w")
+
+tkgrid(tklabel(NAFrame2,text="Number of Dimensions : "), row=2, column=0,sticky="w")
+tkgrid(nf.spin2, row=2, column=1,sticky="w")
+tkgrid(DimHlp.but2, row=2, column=2,sticky="w",pady=7)
+ 
     
 Axe.label2<-tklabel(NAFrame2,text="Plot Dimensions : ")
 Axe1.spin2 <-tkwidget(NAFrame2, "SpinBox", textvariable = Axe11, editable = FALSE,  width="5", values = c(1:1000),justify="right")
@@ -326,31 +399,33 @@ AxesHlp.but2 <- tkbutton(NAFrame2, text="?", command=function() tkmessageBox(tit
 
 tkgrid(Axe.label2,Axe1.spin2, Axe2.spin2, AxesHlp.but2,sticky="w")
   
-tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
 
  # sep.entry <- tkentry(NAFrame2, textvariable = sepvar, width="5", state="normal")
  # SepHlp.but <- tkbutton(NAFrame2, text="?", command=function() tkmessageBox(title="Help",message="Seperator used for combining variable and category names.",icon="info",type="ok"))
  # tkgrid(tklabel(NAFrame2,text="Separator : "), sep.entry, SepHlp.but, sticky="w")
  # tclvalue(sep.entry) <- ""
 
-  summary.check2 <- tkcheckbutton(NAFrame2)
-  tkconfigure(summary.check2,variable=sumvar2)
+#  summary.check2 <- tkcheckbutton(NAFrame2)
+#  tkconfigure(summary.check2,variable=sumvar2)
 #  SumHlp.but2 <- tkbutton(NAFrame2, text="?", command=function() tkmessageBox(title="Help",message="Specifies if a summary of the results will be produced.",icon="info",type="ok"))
-  tkgrid(tklabel(NAFrame2, text="Show Summary : "), summary.check2, sticky="w")
+#  tkgrid(tklabel(NAFrame2, text="Show Summary : "), summary.check2, sticky="w")
 
- tkgrid(tklabel(NAFrame2,text="    ")) # Blank line
 
-   tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
+  sumtypes2 <- c("full","brief","none")
+  summary.cb2 <- tkwidget(NAFrame2, "ComboBox", editable = FALSE, values = sumtypes2) 
+  tkconfigure(summary.cb2, textvariable = sumvar2, width="5")
+ # sumHlp2.but <- tkbutton(NAFrame2, text="?", command=function() tkmessageBox(title="Help",message="Output type.",icon="info",type="ok"))
+  
+  tkgrid(tklabel(NAFrame2, text="Numeric Output : "), summary.cb2, sticky="w",pady=8)
 
   Options.but2 <- tkbutton(NAFrame2, text="Graphical Options", command=function() OnPlotMJCA())
  # tkgrid(Options.but2, sticky="we")
- tkplace(Options.but2, relx = 0.35, rely = 0.99, anchor = "sw")
+ tkplace(Options.but2, relx = 0.35, rely = 1.00, anchor = "sw")
  tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
-
-  tkgrid(NAFrame2)  
-                                                   
-  tkgrid(tklabel(tb2,text="     ")) # Blank line
  
+  tkgrid(NAFrame2)  
+                                                
+
 ################################
 # Function to build the Graphical display options Window (CA)
 ################################
@@ -360,6 +435,7 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
         obj<-(tclvalue(tkget(ds.entry)))
      } else {
          tkmessageBox(title="Error",message="Please select a data set.",icon="error",type="ok")
+         tkfocus(tt)
          return(0)
       }
        
@@ -373,6 +449,8 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
        assign("rowwhat", rowwhat, envir=env)
        assign("colwhat", colwhat, envir=env)
        assign("contrib", contrib, envir=env)
+       assign("sumvar", sumvar, envir=env)
+   
 
        assign("Rcol.row", Rcol.row.tmp, envir=env)
        assign("Ccol.col", Ccol.col.tmp, envir=env)
@@ -399,7 +477,7 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
       
       PlotCAFrame<-tkframe(PlotCAWin, borderwidth=2,relief="groove")
      
-     	tkgrid(tklabel(PlotCAFrame,text="        - Specify Options -        ", foreground="blue"), columnspan=5)
+     	tkgrid(tklabel(PlotCAFrame,text="        - Specify Options -        ", foreground="darkgreen",font=tkfont.create(size=9,weight="bold")), columnspan=5)
            
       # Combobox map
       map.label<-tklabel(PlotCAFrame,text="Map Type : ")
@@ -524,6 +602,7 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
          obj2<-(tclvalue(tkget(ds.entry2)))
      } else {
          tkmessageBox(title="Error",message="Please select a data set.",icon="error",type="ok")
+       tkfocus(tt)
        return(0)
       }
       PlotMJCAWin<-tktoplevel()
@@ -537,6 +616,8 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
        assign("contrib2", contrib2, envir=env)
        assign("rowwhat2", rowwhat2, envir=env)
        assign("colwhat2", colwhat2, envir=env)
+       assign("sumvar2", sumvar2, envir=env)
+   
      
        assign("Rcol.row2", Rcol.row.tmp2, envir=env)
        assign("Ccol.col2", Ccol.col.tmp2, envir=env)
@@ -566,7 +647,7 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
      
       PlotMJCAFrame<-tkframe(PlotMJCAWin, borderwidth=2,relief="groove")
      
-     	tkgrid(tklabel(PlotMJCAFrame,text="        - Specify Options -        ", foreground="blue"), columnspan=5)
+     	tkgrid(tklabel(PlotMJCAFrame,text="        - Specify Options -        ", foreground="darkgreen",font=tkfont.create(size=9,weight="bold")), columnspan=5)
 
       # Combobox map
       map.label2<-tklabel(PlotMJCAFrame,text="Map Type : ")
@@ -684,6 +765,7 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
 	#
 	# Check that the data set field is not empty and get its name
 	#
+ 
 		if (tclvalue(dsvar) != "") {
 			obj  <- parse(text=tclvalue(dsvar))[[1]]
 		} else {
@@ -705,7 +787,6 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
     
     if (tclvalue(colsupvarindex) != "") {
       csupvindex <- parse(text=paste('c(',paste(unlist(strsplit(tclvalue(colsupvarindex),split=" ")),collapse=",",sep=""),')',sep=""))[[1]]
-		 # csupvindex <- parse(text=tclvalue(colsupvarindex))[[1]]
 		} else {
       csupvindex <- NA
     }
@@ -725,7 +806,6 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
     }
 
    substitute(ca(obj = obj,nd = nf,suprow=rsupvindex,supcol=csupvindex,subsetrow=rsubvindex,subsetcol=csubvindex)) 
- 
    }
 
 
@@ -740,6 +820,7 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
 		if (tclvalue(dsvar2) != "") {
 			obj2  <- parse(text=tclvalue(dsvar2))[[1]]
 		} else {
+      tkfocus(tt)
 			return(0)
 		}
 		
@@ -752,7 +833,6 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
     sepvar <- tclvalue(sepvar)
     	  
     # Supplementary
-    
     if (tclvalue(colsupvarindex2) != "") {
 	     csupvindex2 <- parse(text=paste('c(',paste(unlist(strsplit(tclvalue(colsupvarindex2),split=" ")),collapse=",",sep=""),')',sep=""))[[1]]
 		} else {
@@ -760,7 +840,6 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
     }
     
     #Subset
-     	
   	if (tclvalue(colsubvarindex2) != "") {
        csubvindex2 <- parse(text=paste('c(',paste(unlist(strsplit(tclvalue(colsubvarindex2),split=" ")),collapse=",",sep=""),')',sep=""))[[1]]
 		} else {
@@ -777,7 +856,12 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
 ################################
 	"reset" <- function()
 	{
-		tclvalue(dsvar)<-""
+	if (tk2notetab.text(nb) == "Simple CA") 
+  {
+    rbValue <- tclVar("local")
+    rb2Value <- tclVar("whitespace")
+    rb3Value <- tclVar("period")    
+    tclvalue(dsvar)<-""
 	  tclvalue(rowsupvar) <- ""
 	  tclvalue(rowsupvarindex) <- ""
     tclvalue(colsupvar) <- ""
@@ -787,6 +871,8 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
     tclvalue(colsubvar) <- "" 
     tclvalue(colsubvarindex) <- ""
 		tclvalue(nfvar) <- "all"
+	  rowVariable <- tclVar("0")
+    colVariable <- tclVar("1")
     tkconfigure(dfnr.label, text="")
 		tkconfigure(dfnc.label, text="")
 	  tkconfigure(ChooseRowSup.but, fg="black",text="Select")
@@ -796,6 +882,7 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
     tclvalue(map) <- "symmetric"
     tclvalue(rowwhat) <- "all"
     tclvalue(colwhat) <- "all"
+    tclvalue(sumvar) <- "full"
     tclvalue(contrib) <- "none"      
     tclvalue(lbl) <- "2"
     tclvalue(Axe1) <- "1"
@@ -809,20 +896,16 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
     tclvalue(colmass) <- "0"
     tclvalue(rowarrow) <- "0"
     tclvalue(colarrow) <- "0"
-    tclvalue(sumvar) <- "0"
     tclvalue(plot3dvar) <- "0"
     Rcol.row<-Rcol.row.tmp<-"black"
     Ccol.col<-Ccol.col.tmp<-"red"
     tclvalue(sfvar) <- "0.00002"
+    tkfocus(tt)
   }
-
-
-################################
-# Function to reset all dialog elements to default values
-################################
-	"resetmjca" <- function()
-	{
-		tclvalue(dsvar2)<-""
+  ### MJCA
+else if (tk2notetab.text(nb) == "Multiple and Joint CA")
+{
+  	tclvalue(dsvar2)<-""
 	  tclvalue(rowsupvar2) <- ""
 	  tclvalue(rowsupvarindex2) <- ""
     tclvalue(colsupvar2) <- ""
@@ -849,7 +932,7 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
     tclvalue(colarrow2) <- "0"
     tclvalue(centroid) <- "0"
     tclvalue(sepvar) <- ""
-    tclvalue(sumvar2) <- "0"
+    tclvalue(sumvar2) <- "full"
     tclvalue(rpchchoice2) <- "16"
     tclvalue(cpchchoice2) <- "17"
     tclvalue(srpchchoice2) <- "1"
@@ -858,18 +941,28 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
     Ccol.col2<-Ccol.col.tmp2<-"red"
     tclvalue(rowwhat2) <- "none"
     tclvalue(colwhat2) <- "all"
- 
+    tkfocus(tt)
+}    
   }
+
+
+################################
+# Function to reset all dialog elements to default values
+################################
 	
 ################################
 # Function to launch computations
 ################################
  	"execca" <- function()
-	{
+{
+## Simple CA
+if (tk2notetab.text(nb) == "Simple CA") 
+{
 		  if (tclvalue(tkget(ds.entry))!='')  {
         obj<-(tclvalue(tkget(ds.entry)))
      } else {
          tkmessageBox(title="Error",message="Please select a data set.",icon="error",type="ok")
+         tkfocus(tt)
          return(0)
       }
   #
@@ -891,7 +984,11 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
 
 	# Build and display the command line so that the user can check it
 		cmd <- build()
-		if (cmd == 0) return(0)
+
+		if (cmd == 0) {
+       tkfocus(tt)
+       return(0)
+       }
 
 	 # Echo the command line to the console
  		pr1 <- substr(options("prompt")$prompt, 1,2)
@@ -899,24 +996,26 @@ tkgrid(tklabel(NAFrame2,text="   ")) # Blank line
 	#
 	# Execute ca command
 	#
-		resca <-eval.parent(cmd)
+		resca <- eval.parent(cmd)
     assign(eval(outputname), resca, pos=1)
     eval(outputname)
-
-		if (tclvalue(sumvar) == "1") {
+    tkfocus(tt)
+		if (tclvalue(sumvar) == "full") {
 	    	cmd3 <- substitute(summary(cmd))
         pr3 <- substr(options("prompt")$prompt, 1,2)
       	cat(deparse(cmd3, width = 256), "\n", pr3, sep="")
         print(eval.parent(cmd3))
+        tkfocus(tt)
  		 }
-	  else {
+	  else if (tclvalue(sumvar) == "brief") {
 	      print(eval.parent(cmd))
+	      tkfocus(tt)
 	  }
-
  
     map <- tclvalue(map)
     rowwhat <- tclvalue(rowwhat)
     colwhat <- tclvalue(colwhat)
+    sumvar <- tclvalue(sumvar)
     contrib <- tclvalue(contrib)
   
 if (tclvalue(plot3dvar) == "0") {
@@ -933,14 +1032,17 @@ else {
 	#
 		eval.parent(cmd2)
 		tkfocus(tt)
-	}
-	
-	"execmjca" <- function()
-	{
-		  if (tclvalue(tkget(ds.entry2))!='')  {
+  
+}
+
+### MJCA
+else if (tk2notetab.text(nb) == "Multiple and Joint CA")
+{
+ 		  if (tclvalue(tkget(ds.entry2))!='')  {
         obj<-(tclvalue(tkget(ds.entry2)))
      } else {
          tkmessageBox(title="Error",message="Please select a data set.",icon="error",type="ok")
+         tkfocus(tt)
          return(0)
       }
   #
@@ -962,8 +1064,11 @@ else {
 	# Build and display the command line so that the user can check it
 	#
 		cmdmjca <- buildmjca()
-		if (cmdmjca == 0) return(0)
-           
+		if (cmdmjca == 0)
+    {
+     tkfocus(tt)
+     return(0)
+    }       
   # Echo the command line to the console
    pr2 <- substr(options("prompt")$prompt, 1,2)
 	 cat(eval(outputname2), " <- ", deparse(cmdmjca, width = 256), "\n", pr2, sep="")
@@ -974,20 +1079,21 @@ else {
 		assign(eval(outputname2), resmjca, pos=1)
 		eval(outputname2)
 
-		if (tclvalue(sumvar2) == "1") {
+		if (tclvalue(sumvar2) == "full") {
 	    	cmdmjca3 <- substitute(summary(cmdmjca))
         pr3 <- substr(options("prompt")$prompt, 1,2)
       	cat(deparse(cmdmjca3, width = 256), "\n", pr3, sep="")
         print(eval.parent(cmdmjca3))
  		 }
-	  else {
+    else if (tclvalue(sumvar2) == "brief") {
 	      print(eval.parent(cmdmjca))
 	  }
-   
+    
     map2 <- tclvalue(map2)
     rowwhat2 <- tclvalue(rowwhat2)
     colwhat2 <- tclvalue(colwhat2)
     contrib2 <- tclvalue(contrib2)
+    sumvar2 <- tclvalue(sumvar2)
     cmdmjca2 <- substitute(plot(cmdmjca,dim=c(Axe1num1,Axe2num2),pch=c(rpchchoicenum2,srpchchoicenum2,cpchchoicenum2,scpchchoicenum2),map=map2,centroids=cetroidlog,what=c(rowwhat2,colwhat2),contrib=contrib2,labels=lbllog2,mass=c(rowmasslog2,colmasslog2),arrows=c(rowarrowlog2,colarrowlog2),col=c(Rcol.row.tmp2,Ccol.col.tmp2)))
   
   	 # Echo the command line to the console
@@ -997,30 +1103,34 @@ else {
 	# Execute plot command
 	#
 		eval.parent(cmdmjca2)
-		tkfocus(tt)
+    tkfocus(tt)
+}
 
 	}
-
+	
 #
 # Reset and Submit buttons
 #
-	RCSFrame <- tkframe(tb1, relief="groove")
-	reset.but <- tkbutton(RCSFrame, text="Reset", command=reset)
-	cancel.but <- tkbutton(RCSFrame, text="Exit", command=function() tkdestroy(tt))
-	submit.but <- tkbutton(RCSFrame, text="Run", default="active", command=function() execca())
-	tkgrid(cancel.but, submit.but, reset.but, ipadx=20)	
-	tkgrid(RCSFrame)
-	
-	RCSFrame2 <- tkframe(tb2, relief="groove")
-	reset.but2 <- tkbutton(RCSFrame2, text="Reset", command=resetmjca)
-	cancel.but2 <- tkbutton(RCSFrame2, text="Exit", command=function() tkdestroy(tt))
-	submit.but2 <- tkbutton(RCSFrame2, text="Run", default="active", command=function() execmjca())
-	tkgrid(cancel.but2, submit.but2, reset.but2, ipadx=20)	
-	tkgrid(RCSFrame2)
-
+ # ntab <- as.numeric(tcl(nb, "index", "end"))
+ 
+  RCSFrame <- tkframe(tt, relief="groove", borderwidth=2, background="white")
+	reset.but <- tkbutton(RCSFrame, text="Reset", command=reset,foreground="white", background="darkgreen",font=tkfont.create(size=9,weight="bold"))
+	submit.but <- tkbutton(RCSFrame, text="Run", default="active", command=function() execca(),foreground="white", background="darkgreen",font=tkfont.create(size=9,weight="bold"))
+	cancel.but <- tkbutton(RCSFrame, text="Exit", command=function() tkdestroy(tt),foreground="white", background="darkgreen",font=tkfont.create(size=9,weight="bold"))
+  tkpack(cancel.but, submit.but, reset.but, side="left", expand="TRUE", fill="x")  
+  tkpack(RCSFrame, expand="TRUE", fill="x")
+                                 
+#	RCSFrame2 <- tkframe(tt, relief="groove",borderwidth=2, background="white")
+#	reset.but2 <- tkbutton(RCSFrame2, text="Reset", command=resetmjca)
+#	cancel.but2 <- tkbutton(RCSFrame2, text="Exit", command=function() tkdestroy(tt))
+#	submit.but2 <- tkbutton(RCSFrame2, text="Run", default="active", command=function() execmjca())
+#	tkgrid(cancel.but2, submit.but2, reset.but2, ipadx=20)	
+#	tkgrid(RCSFrame2)
+   
 # If window is closed by user, terminate the dialog
 #	tkbind(tt, "<KeyPress-Return>", function() execca())
 	tkbind(tt, "<KeyPress-Escape>", function() tkdestroy(tt))
+  tkfocus(tt)
 
 "OnColSub" <- function(df.entry,ChooseColSub.but,colsubvar,colsubvarindex)
 {
@@ -1030,7 +1140,8 @@ else {
       else
       {
         tkmessageBox(title="Error",message="Please select a data set.",icon="error",type="ok")
-        return(0);
+        tkfocus(tt)
+        return(0)
       }
 
       vars<-colnames(get(obj))
@@ -1038,9 +1149,9 @@ else {
       sublcolindex<-NULL
 
       ColSubWin<-tktoplevel()
-      tkwm.title(ColSubWin,"Select supplementary columns")
+      tkwm.title(ColSubWin,"Select subset columns")
       #cr?ation de la fonction DOK.funct
-      OK.fun<-function()
+      OK.fun<-function() 
       {
         vsup.select<-listvar.nom[as.numeric(tkcurselection(listvar))+1]
         vsup.select.index <- as.numeric(tkcurselection(listvar))+1 
@@ -1053,7 +1164,8 @@ else {
           tclvalue(colsubvar)<-""
           tclvalue(colsubvarindex)<-""
           tkdestroy(ColSubWin)
-          return()
+          tkfocus(tt)
+          return(0)
         }
         assign("sublcol", vsup.select, envir=env)
         assign("sublcolindex", vsup.select.index, envir=env)
@@ -1071,8 +1183,9 @@ else {
       listvar.nom<-NULL
       indice<-0
 
+
       for (i in (1:ncol(get(obj)))) {
-   #       if (is.numeric(get(obj)[,i])) {
+ #         if (is.numeric(get(obj)[,i])) {
             tkinsert(listvar,"end",vars[i]) # On renseigne la liste
             listvar.nom<-c(listvar.nom,vars[i])
             if(vars[i] %in% sublcol) tkselection.set(listvar, indice)
@@ -1083,7 +1196,7 @@ else {
       OK.but<-tkbutton(ColSubWin, text="OK", width=16,command=OK.fun)
 
       tkgrid(tklabel(ColSubWin, text=""))
-      tkgrid(tklabel(ColSubWin, text = "Select supplementary column(s)", fg = "blue"), column=1, columnspan = 1, sticky = "ew")
+      tkgrid(tklabel(ColSubWin, text = "Select subset column(s)", fg = "darkgreen",font=tkfont.create(size=9,weight="bold")), column=1, columnspan = 1, sticky = "ew")
       tkgrid(listvar, scrvar, sticky = "nw")
       tkgrid.configure(scrvar, sticky = "ens", columnspan=1)
       tkgrid.configure(listvar, sticky = "ew", column=1, columnspan=1)
@@ -1103,7 +1216,8 @@ else {
       else
       {
         tkmessageBox(title="Error",message="Please select a data set.",icon="error",type="ok")
-        return(0);
+        tkfocus(tt)
+        return(0)
       }
 
       vars<-colnames(get(obj))
@@ -1126,7 +1240,8 @@ else {
           tclvalue(colsupvar)<-""
           tclvalue(colsupvarindex)<-""
           tkdestroy(ColSupWin)
-          return()
+          tkfocus(tt)
+          return(0)
         }
         assign("suplcol", vsup.select, envir=env)
         assign("suplcolindex", vsup.select.index, envir=env)
@@ -1144,18 +1259,18 @@ else {
       indice<-0
       
       for (i in (1:ncol(get(obj)))) {
-      #    if (is.numeric(get(obj)[,i])) {
+   #       if (is.numeric(get(obj)[,i])) {
             tkinsert(listvar,"end",vars[i]) # On renseigne la liste
             listvar.nom<-c(listvar.nom,vars[i])
             if(vars[i] %in% suplcol) tkselection.set(listvar, indice)
             indice<-indice+1
-     #     }
+  #        }
       }
    
       OK.but<-tkbutton(ColSupWin, text="OK", width=16,command=OK.fun)
 
       tkgrid(tklabel(ColSupWin, text=""))
-      tkgrid(tklabel(ColSupWin, text = "Select supplementary column(s)", fg = "blue"), column=1, columnspan = 1, sticky = "ew")
+      tkgrid(tklabel(ColSupWin, text = "Select supplementary column(s)", fg = "darkgreen",font=tkfont.create(size=9,weight="bold")), column=1, columnspan = 1, sticky = "ew")
       tkgrid(listvar, scrvar, sticky = "nw")
       tkgrid.configure(scrvar, sticky = "ens", columnspan=1)
       tkgrid.configure(listvar, sticky = "ew", column=1, columnspan=1)
@@ -1174,7 +1289,8 @@ else {
       else
       {
          tkmessageBox(title="Error",message="Please select a data set.",icon="error",type="ok")
-         return(0);
+         tkfocus(tt)
+         return(0)
       }
 
       rows<-rownames(get(obj))
@@ -1197,6 +1313,7 @@ else {
            tclvalue(rowsubvar)<-""
            tclvalue(rowsubvarindex)<-""
           tkdestroy(RowSubWin)
+          tkfocus(tt)
           return()
         }
         assign("sublrow", Ligne.select, envir=env)
@@ -1217,15 +1334,16 @@ else {
 
       for (i in (1:nrow(get(obj))))
       {
+  #     if (is.numeric(get(obj)[,i])) {
           tkinsert(listLigne,"end",rows[i]) # On renseigne la liste
           if(rows[i] %in% sublrow) tkselection.set(listLigne, indice)
           indice<-indice+1
-        }
-
+ #       }
+      }
         OK.but<-tkbutton(RowSubWin, text="OK", width=16,command=OK.fun)
 
         tkgrid(tklabel(RowSubWin, text=""))
-        tkgrid(tklabel(RowSubWin, text = "Select subset row(s)", fg = "blue"), column=1, columnspan = 1, sticky = "ew")
+        tkgrid(tklabel(RowSubWin, text = "Select subset row(s)", fg = "darkgrenn",font=tkfont.create(size=9,weight="bold")), column=1, columnspan = 1, sticky = "ew")
         tkgrid(listLigne, scrLigne, sticky = "nw")
         tkgrid.configure(scrLigne, sticky = "ens", columnspan=1)
         tkgrid.configure(listLigne, sticky = "ew", column=1, columnspan=1)
@@ -1244,7 +1362,8 @@ else {
       else
       {
          tkmessageBox(title="Error",message="Please select a data set.",icon="error",type="ok")
-         return(0);
+         tkfocus(tt)
+         return(0)
       }
     
       rows<-rownames(get(obj))
@@ -1269,6 +1388,7 @@ else {
           tclvalue(rowsupvar)<-""
           tclvalue(rowsupvarindex)<-""
           tkdestroy(RowSupWin)
+          tkfocus(tt)
           return()
         }
         assign("suplrow", Ligne.select, envir=env)
@@ -1285,16 +1405,18 @@ else {
       listfact.nom<-NULL
       for (i in (1:nrow(get(obj))))
       {
+  #     if (is.numeric(get(obj)[,i])) {
           tkinsert(listLigne,"end",rows[i])
           listfact.nom <- c(listfact.nom,rows[i])
           if(rows[i] %in% suplrow) tkselection.set(listLigne, indice)
           indice<-indice+1
-        }
+  #      }
+      }
 
         OK.but<-tkbutton(RowSupWin, text="OK", width=16,command=OK.fun)
 
         tkgrid(tklabel(RowSupWin, text=""))
-        tkgrid(tklabel(RowSupWin, text = "Select supplementary row(s)", fg = "blue"), column=1, columnspan = 1, sticky = "ew")
+        tkgrid(tklabel(RowSupWin, text = "Select supplementary row(s)", fg = "darkgreen",font=tkfont.create(size=9,weight="bold")), column=1, columnspan = 1, sticky = "ew")
         tkgrid(listLigne, scrLigne, sticky = "nw")
         tkgrid.configure(scrLigne, sticky = "ens", columnspan=1)
         tkgrid.configure(listLigne, sticky = "ew", column=1, columnspan=1)
@@ -1306,11 +1428,402 @@ else {
         
   }
 
+"is.valid.name" <- function(x) 
+{
+    length(x) == 1 && is.character(x) && x == make.names(x)
+}
+
+"listDataSets" <- function(envir = .GlobalEnv, ...) 
+{
+    Vars <- ls(envir = envir, all.names = TRUE)
+    if (length(Vars) == 0) 
+        return(Vars)
+    names(which(sapply(Vars, function(.x) is.data.frame(get(.x, 
+        envir = envir)))))
+}
+
+  
+"ReadDataSet" <- function(ds.entry, dfnr.label, dfnc.label) {
+  
+   	vnr <- NULL
+  	vnc <- NULL
+  
+    top<-tktoplevel(borderwidth = 10)
+    tkwm.title(top, "Read Text Data From File, Clipboard, or URL")
+    tkwm.resizable(top, 0, 0)
+
+    optionsFrame <- tkframe(top)
+    dsname <- tclVar("data")
+    entryDsname <- ttkentry(optionsFrame, width="20", textvariable=dsname)
+
+    rowVariable <- tclVar("0")
+    colVariable <- tclVar("1")
+    
+    rowCheckBox <- tkcheckbutton(optionsFrame, variable=rowVariable)
+    colCheckBox <- tkcheckbutton(optionsFrame, variable=colVariable)
+
+    missingVariable <- tclVar("NA")
+    missingEntry <- ttkentry(optionsFrame, width="8", textvariable=missingVariable)
+                                              
+    onOK <- function(){
+        tkdestroy(top)
+        dsnameValue <- trim.blanks(tclvalue(dsname))
+        if (dsnameValue == ""){
+         tkmessageBox(title="Error",message="You must enter a name for the data set.",icon="error",type="ok")
+         tkfocus(tt)
+         return()
+         }
+        if (!is.valid.name(dsnameValue)){
+         tkmessageBox(title="Error",message=paste('"', dsnameValue, '" ', "is not a valid name.",sep=" "),icon="error",type="ok")
+           tkfocus(tt)
+         return()
+         }
+        if (is.element(dsnameValue, listDataSets())) {
+            if ("no" == tclvalue(checkReplace(dsnameValue, "Data set"))){
+                ReadDataSet(ds.entry, dfnr.label, dfnc.label)
+               tkfocus(tt) 
+               return()
+            }
+            }
+                 
+ 
+      ext <- 0
+      location <- tclvalue(rbValue)
+      file <- if (location == "clipboard") "clipboard" 
+			else if (location == "local") tclvalue(tkgetOpenFile(filetypes=
+            	'{"Text Files" {".txt" ".TXT" ".dat" ".DAT" ".csv" ".CSV"}} {"MS Excel file" {*.xls ".XLS" "*.xlsx" ".XLSX"}} {"All Files" {"*"}}'))	 
+      else {
+     				initializeDialog(subdialog, title="Internet URL")
+
+        		onOKsub <- function(){
+        				closeDialog(subdialog)
+      			    tkfocus(tt)
+		    		}
+	
+      			urlFrame <- tkframe(subdialog)
+    				urlVar <- tclVar("")
+    				
+          	urlabel <- tklabel(subdialog,text="Specify address:")
+            url <- ttkentry(urlFrame, font="logFont", width="30", textvariable=urlVar)
+	    			urlXscroll <- ttkscrollbar(urlFrame,
+						orient="horizontal", command=function(...) tkxview(url, ...))
+    				tkconfigure(url, xscrollcommand=function(...) tkset(urlXscroll, ...))
+    		#		subOKCancelHelp()
+    				tkgrid(url, sticky="w")
+	   		 	  tkgrid(urlXscroll, sticky="ew")
+    				tkgrid(urlFrame, sticky="nw")
+	   		#	  tkgrid(subButtonsFrame, sticky="w")
+    	   	 subOKbut <- tkbutton(subdialog, text = "OK",  command = onOKsub, width = 12)	
+	     		 tkgrid(subOKbut, sticky="we")
+   			   tkfocus(subdialog)
+           tkwait.window(subdialog)
+    				tclvalue(urlVar)
+				}
+        if (file == "") {
+  #          if ("grab.focus") tkgrab.release(top)
+            tkdestroy(top)
+            return()
+            }
+
+    #TODO
+    if (location == "local") {
+       sop <- match(".", rev(strsplit(file, NULL)[[1]]))[1]
+       ext <- tolower(substring(file, nchar(file) - sop + 2, nchar(file)))
+     }
+     if(ext == "xls" || ext == "xlsx"){
+        if(!require(RODBC))
+        stop("This function requires the RODBC package.\n")
+       # close all databases in case of error
+       on.exit(odbcCloseAll())
+       channel <- switch(EXPR = ext, xls = odbcConnectExcel(file),xlsx = odbcConnectExcel2007(file))
+       tabdat <- sqlTables(channel)
+       names(tabdat) <- tolower(names(tabdat))
+       tabname <- tabdat$table_name
+       tabdat <- ifelse(tabdat$table_type =="TABLE",
+       substring(tabname, 2, nchar(tabname) - 2),
+       substring(tabname, 1, nchar(tabname) - 1))
+    # if there are several tables
+        if(length(tabdat)>1)
+            fil <- tk_select.list(sort(tabdat),
+            title = "Select")
+          else
+            fil <- tabdat
+          if(fil == ""){
+            tkmessageBox(title="Error",message="No table selected.",icon="error",type="ok")
+            tkfocus(tt)
+            return()
+            }
+          if(ext == "xls" || ext == "xlsx")
+            fil <- paste("[", fil, "$]", sep = "")
+          
+    # Retrieve the data
+    dat <- sqlQuery(channel = channel, query = paste("select * from", fil))
+    names(dat)<- trim.blanks(names(dat))
+    dat <- trim.col.na(dat)
+    odbcCloseAll()
+    assign(dsnameValue, as.data.frame(dat), envir = .GlobalEnv)
+    command <- paste("sqlQuery(channel = ",channel,", select * from ", fil,")",
+            sep = "")
+
+    logger(paste(dsnameValue, " <- ", command, sep = ""))
+    activeDataSet(dsnameValue)    
+    
+    tkdelete(ds.entry, 0, "end")
+    tkinsert(ds.entry, "end", dsnameValue)
+  
+   }
+   else {
+        colhead <- tclvalue(colVariable)# == "1"
+        assign("rowhead",as.integer(tclvalue(rowVariable)),envir=env)
+        if (rowhead == 0) rowhead=NULL
+     #   tclvalue(rowVariable) <- "1"
+        rb1 <- tclvalue(rb2Value)
+        del <- if (rb1 == "whitespace") ""
+            else if (rb1 == "commas") ","
+            else if (rb1 == "tabs") "\\t"
+            else tclvalue(otherVariable)
+    
+        miss <- tclvalue(missingVariable)
+        dec <- if (tclvalue(rb3Value) == "period") "." else ","
+
+    command <- paste('read.table("', file,'", header=', colhead, ',row.names=', rowhead, ',sep="', del, '", na.strings="', miss, '", dec="', dec, '", strip.white=TRUE)', sep="")
+    logger(paste(dsnameValue, " <- ", command, sep=""))
+		result <- justDoIt(command)
+		if (class(result)[1] !=  "try-error"){
+        	assign(dsnameValue, result, envir=.GlobalEnv)
+        	activeDataSet(dsnameValue)
+			}
+        
+    tkdelete(ds.entry, 0, "end")
+      tkinsert(ds.entry, "end", dsnameValue)
+   }
+        tkfocus(tt)
+        }
+
+ #    buttonsFrame <- tkframe(top)
+      OKbutton <- tkbutton(optionsFrame, text = "OK", 
+      width = "12", command = onOK, 
+      default = "active", borderwidth = 3)
+
+      onCancel <- function() {
+        tkdestroy(top)
+     #  tkfocus(tt())
+      }
+
+    cancelButton <- tkbutton(optionsFrame, text = "Cancel", width = "12", command = onCancel, borderwidth = 3)
+ 
+  #  tkgrid(buttonsFrame, OKbutton, cancelButton)
+  
+    tkgrid(tklabel(optionsFrame, text="Enter name for data set:"), entryDsname, sticky="w")
+    tkgrid(tklabel(optionsFrame,text="    ")) # Blank line
+    
+    tkgrid(tklabel(optionsFrame, text="Row labels in first column:"), rowCheckBox, sticky="w")
+    tkgrid(tklabel(optionsFrame, text="Column labels in first row:"), colCheckBox, sticky="w")
+ #   tkgrid(tklabel(optionsFrame,text="    ")) # Blank line
+  
+##    tkgrid(labelRcmdr(optionsFrame, text=gettextRcmdr("Read data from clipboard:")), clipboardCheckBox, sticky="w")
+    tkgrid(tklabel(optionsFrame, text="Missing data indicator:"), missingEntry, sticky="w",pady=4)
+#  tkgrid(tklabel(optionsFrame,text="    ")) # Blank line
+
+  tkgrid(tklabel(optionsFrame,text="Location of Data File", foreground="darkgreen"),sticky="w",pady=4)
+  lfs <- tkradiobutton(optionsFrame)
+  clp <- tkradiobutton(optionsFrame)
+  iurl <- tkradiobutton(optionsFrame)
+
+  tkconfigure(lfs,variable=rbValue,value="local")
+  tkconfigure(clp,variable=rbValue,value="clipboard")
+  tkconfigure(iurl,variable=rbValue,value="url")
+  tkgrid(tklabel(optionsFrame,text="Local file system"),lfs,sticky="w")
+  tkgrid(tklabel(optionsFrame,text="Clipboard"),clp,sticky="w")
+  tkgrid(tklabel(optionsFrame,text="Internet URL"),iurl,sticky="w")
+
+  delimiterFrame<-tkframe(optionsFrame)
+ 
+  tkgrid(tklabel(delimiterFrame,text="Field Separator", foreground="darkgreen"),sticky="w",pady=4)
+
+  wspace <- tkradiobutton(delimiterFrame)
+  commas <- tkradiobutton(delimiterFrame)
+  tabs <- tkradiobutton(delimiterFrame)
+  other <- tkradiobutton(delimiterFrame)
+
+  otherEntry <- ttkentry(delimiterFrame, width="4", textvariable=otherVariable)  
+                              
+  tkconfigure(wspace,variable=rb2Value,value="whitespace")
+  tkconfigure(commas,variable=rb2Value,value="commas")
+  tkconfigure(tabs,variable=rb2Value,value="tabs")
+  tkconfigure(other,variable=rb2Value,value="other")
+  tkgrid(tklabel(delimiterFrame,text="White space"),wspace,sticky="w")
+  tkgrid(tklabel(delimiterFrame,text="Comma"),commas,sticky="w")
+  tkgrid(tklabel(delimiterFrame,text="Tab"),tabs,sticky="w")
+  tkgrid(tklabel(delimiterFrame,text="Other"),other,tklabel(optionsFrame,text="Specify :"),otherEntry,sticky="w")
+            
+
+  tkgrid(tklabel(delimiterFrame,text="    ")) # Blank line
+
+  tkgrid(tklabel(optionsFrame,text="Decimal-point character", foreground="darkgreen"),sticky="w",pady=4)
+
+  decperiod <- tkradiobutton(optionsFrame)
+  deccomma <- tkradiobutton(optionsFrame)
+
+  tkconfigure(decperiod,variable=rb3Value,value="period")
+  tkconfigure(deccomma,variable=rb3Value,value="comma")
+  tkgrid(tklabel(optionsFrame,text="Period [.]"),decperiod,sticky="w")
+  tkgrid(tklabel(optionsFrame,text="Comma [,]"),deccomma,sticky="w")
+
+  tkgrid(delimiterFrame, sticky="w", columnspan=2)
+
+  tkgrid(OKbutton, cancelButton)
+  tkgrid(optionsFrame, sticky="w")
+  
+ 
+#
+# Put the row and column numbers of the dataframe in the corresponding labels
+#
+#	tkconfigure(dfnr.label, text=as.character(vnr))
+#	tkconfigure(dfnc.label, text=as.character(vnc))
+
+ }
+
+"logger" <- function (command) {
+#	lines <- strsplit(command, "\n")[[1]]
+#		for (line in seq(along=lines)) {
+#			prompt <- ifelse (line==1, paste("\n", "prefixes"[1], sep=""), paste("\n", "prefixes"[2], sep=""))
+#			cat(paste(prompt, lines[line]))  ##rmh
+#		cat("\n")                          ##rmh
+#	}
+	cat(command)
+  command
+}
+
+"justDoIt" <- function(command) {
+#	Message()
+#	if (!getRcmdr("suppress.X11.warnings")){
+#		messages.connection <- file(open="w+")
+#		sink(messages.connection, type="message")
+#		on.exit({
+#				sink(type="message")
+#				close(messages.connection)
+#			})
+#	}
+#	else messages.connection <- getRcmdr("messages.connection")
+	capture.output(result <- try(eval(parse(text=command), envir=.GlobalEnv), silent=TRUE))
+	if (class(result)[1] ==  "try-error"){
+#		Message(message=paste(strsplit(result, ":")[[1]][2]), type="error")
+#		tkfocus(CommanderWindow())
+		return(result)
+	}
+#	checkWarnings(readLines(messages.connection))
+	result
+}
+
+"trim.blanks"<-function (text) 
+{
+  gsub("^ *", "", gsub(" *$", "", text))
+}
+
+"checkReplace"<- function (name, type ="Variable") 
+{
+
+ tkmessageBox(title="Error",message = sprintf("%s %s already exists.\nOverwrite %s?",type, name, tolower(type)), icon = "warning", type = "yesno", 
+ default = "no")
+}
+
+"defmacro" <- function (..., expr) 
+{
+    expr <- substitute(expr)
+    len <- length(expr)
+    expr[3:(len + 1)] <- expr[2:len]
+    expr[[2]] <- quote(on.exit(remove(list = objects(pattern = "^\\.\\.", 
+        all.names = TRUE))))
+    a <- substitute(list(...))[-1]
+    nn <- names(a)
+    if (is.null(nn)) 
+        nn <- rep("", length(a))
+    for (i in seq(length.out = length(a))) {
+        if (nn[i] == "") {
+            nn[i] <- paste(a[[i]])
+            msg <- paste(a[[i]], gettext("not supplied", domain = "R-Rcmdr"))
+            a[[i]] <- substitute(stop(foo), list(foo = msg))
+        }
+    }
+    names(a) <- nn
+    a <- as.list(a)
+    ff <- eval(substitute(function() {
+        tmp <- substitute(body)
+        eval(tmp, parent.frame())
+    }, list(body = expr)))
+    formals(ff) <- a
+    mm <- match.call()
+    mm$expr <- NULL
+    mm[[1]] <- as.name("macro")
+    expr[[2]] <- NULL
+    attr(ff, "source") <- c(deparse(mm), deparse(expr))
+    ff
+}
+
+      
+"initializeDialog" <- defmacro(window=top, title="", offset=10, preventCrisp=FALSE,
+    expr={
+#        if ((!preventCrisp) && getRcmdr("crisp.dialogs")) tclServiceMode(on=FALSE)
+        window <- tktoplevel(borderwidth=10)
+#        tkwm.withdraw(window)
+        tkwm.title(window, title)
+ #       position <- if (is.SciViews()) -1 else commanderPosition() # +PhG
+#        position <- if (any(position < 0)) "-50+50"
+#            else paste("+", paste(offset + position, collapse="+"), sep="")
+#        tkwm.geometry(window, position)
+        }
+    )
+
+"activeDataSet" <- function (dsname) 
+{
+    if (!is.data.frame(ds <- get(dsname, envir = .GlobalEnv))) {
+        command <- paste(dsname, " <- as.data.frame(", dsname, 
+            ")", sep = "")
+        justDoIt(command)
+        logger(command)
+    }
+    varnames <- names(get(dsname, envir = .GlobalEnv))
+    newnames <- make.names(varnames)
+    badnames <- varnames != newnames
+    if (any(badnames)) {
+        command <- paste("names(", dsname, ") <- make.names(names(", 
+            dsname, "))", sep = "")
+    	logger(command)
+     	result <- try(parse(text=paste(command)), silent=TRUE)
+    }
+    dsname
+}
+
+"closeDialog" <- defmacro(window=top, release=TRUE,
+    expr={
+ #       if (release && GrabFocus()) tkgrab.release(window)
+        tkdestroy(window)
+        }
+        
+        
+    )
+
+"trim.col.na" <- function(dat){
+# Remove variables with only missing values (occurs sometimes with modified Excel file)
+    colsup <- NULL
+    for (i in 1:ncol(dat))
+    {
+    if (length(dat[is.na(dat[,i])==T,i]) ==length(dat[,i]))
+     colsup <- c(colsup,i)
+    }
+    if (length(colsup) > 0)
+     dat <- dat[,-colsup]
+    dat
+    }
+
+
+ 
 ################################
 # Function to choose the dataframe : builds a listbox containing the data sets
 # that are in the global environment and allows the user to choose one
 ################################
-"SelectDataSet" <- function(df.entry, dfnr.label, dfnc.label)
+"SelectDataSet" <- function(ds.entry, dfnr.label, dfnc.label)
 {
 	tf <- tktoplevel()
 	tkwm.title(tf,"Select data set")
@@ -1325,9 +1838,9 @@ else {
 	scr.df <- tkscrollbar(tf, repeatinterval=5, command=function(...)tkyview(listbox.df,...))
 	tkconfigure(listbox.df, yscrollcommand=function(...)tkset(scr.df,...))
 	frame1 <- tkframe(tf, relief="groove", borderwidth=2)
-	cancel.but <- tkbutton(frame1, text="Cancel", command=function()tkdestroy(tf))
-	submit.but <- tkbutton(frame1, text="Choose", default="active", command=function()tclvalue(done)<-1)
-	tkpack(cancel.but, submit.but, side="left")
+#	cancel.but <- tkbutton(frame1, text="Cancel", command=function()tkdestroy(tf))
+	submit.but <- tkbutton(frame1, text="OK", width=12, default="active", command=function()tclvalue(done)<-1)
+  tkpack(submit.but, side="left")
 	tkpack(frame1, side="bottom")
 	tkpack(listbox.df, side="left", fill="both", expand=TRUE)
 	tkpack(scr.df, side="right", fill="y")
@@ -1364,6 +1877,7 @@ else {
 					}
 				}
 				res <- sapply(names(xobj), fn2)
+        tkfocus(tt)
 				return(res)
 			}
 		}
@@ -1389,6 +1903,7 @@ else {
 
 	if(numc == "") {
 		tkdestroy(tf)
+    tkfocus(tt)
 		return(0)
 	}
 
@@ -1397,16 +1912,16 @@ else {
 #
 # Put the name of the object in the dataframe text entry
 #
-	tkdelete(df.entry, 0, "end")
-	tkinsert(df.entry, "end", choix)
+	tkdelete(ds.entry, 0, "end")
+	tkinsert(ds.entry, "end", choix)
 #
 # Put the row and column numbers of the dataframe in the corresponding labels
 #
 	tkconfigure(dfnr.label, text=as.character(vnr[numi]))
 	tkconfigure(dfnc.label, text=as.character(vnc[numi]))
-
+  tkfocus(tt)
 	tkdestroy(tf)
 }
-
+    tkfocus(tt)
 }
 
