@@ -1,7 +1,7 @@
 ##################################f################
 ##                                              ##
 ## caGUI: A tcl/tk Interface to the ca package  ##
-## Written by Angelos Markos; Autumn 2009       ##
+## Written by Angelos Markos; Mar 2010	        ##
 ##               amarkos@uom.gr                 ##
 ##################################################
 
@@ -1493,10 +1493,10 @@ else if (tk2notetab.text(nb) == "Multiple and Joint CA")
 			else if (location == "local") tclvalue(tkgetOpenFile(filetypes=
             	'{"Text Files" {".txt" ".TXT" ".dat" ".DAT" ".csv" ".CSV"}} {"MS Excel file" {*.xls ".XLS" "*.xlsx" ".XLSX"}} {"All Files" {"*"}}'))	 
       else {
-     				initializeDialog(subdialog, title="Internet URL")
-
+                subdialog <- tktoplevel(borderwidth=10)
+                tkwm.title(subdialog, "Internet URL")
         		onOKsub <- function(){
-        				closeDialog(subdialog)
+        		    tkdestroy(subdialog)
       			    tkfocus(tt)
 		    		}
 	
@@ -1696,23 +1696,10 @@ else if (tk2notetab.text(nb) == "Multiple and Joint CA")
 }
 
 "justDoIt" <- function(command) {
-#	Message()
-#	if (!getRcmdr("suppress.X11.warnings")){
-#		messages.connection <- file(open="w+")
-#		sink(messages.connection, type="message")
-#		on.exit({
-#				sink(type="message")
-#				close(messages.connection)
-#			})
-#	}
-#	else messages.connection <- getRcmdr("messages.connection")
 	capture.output(result <- try(eval(parse(text=command), envir=.GlobalEnv), silent=TRUE))
 	if (class(result)[1] ==  "try-error"){
-#		Message(message=paste(strsplit(result, ":")[[1]][2]), type="error")
-#		tkfocus(CommanderWindow())
 		return(result)
 	}
-#	checkWarnings(readLines(messages.connection))
 	result
 }
 
@@ -1728,53 +1715,43 @@ else if (tk2notetab.text(nb) == "Multiple and Joint CA")
  default = "no")
 }
 
-"defmacro" <- function (..., expr) 
-{
+ defmacro <- function(..., expr){
     expr <- substitute(expr)
     len <- length(expr)
-    expr[3:(len + 1)] <- expr[2:len]
-    expr[[2]] <- quote(on.exit(remove(list = objects(pattern = "^\\.\\.", 
-        all.names = TRUE))))
+    expr[3:(len+1)] <- expr[2:len]
+    ## delete "macro" variables starting in ..
+    expr[[2]] <- quote(on.exit(remove(list=objects(pattern="^\\.\\.", all.names=TRUE))))
     a <- substitute(list(...))[-1]
+    ## process the argument list
     nn <- names(a)
-    if (is.null(nn)) 
-        nn <- rep("", length(a))
-    for (i in seq(length.out = length(a))) {
+    if (is.null(nn)) nn <- rep("", length(a))
+    for (i in seq(length=length(a))){
         if (nn[i] == "") {
             nn[i] <- paste(a[[i]])
-            msg <- paste(a[[i]], gettext("not supplied", domain = "R-Rcmdr"))
+            msg <- paste(a[[i]], gettext("not supplied", domain="R-Rcmdr"))
             a[[i]] <- substitute(stop(foo), list(foo = msg))
+            }
         }
-    }
     names(a) <- nn
     a <- as.list(a)
-    ff <- eval(substitute(function() {
-        tmp <- substitute(body)
-        eval(tmp, parent.frame())
-    }, list(body = expr)))
+    ff <- eval(substitute(
+        function(){
+            tmp <- substitute(body)
+            eval(tmp, parent.frame())
+            },
+        list(body = expr)))
+    ## add the argument list
     formals(ff) <- a
+    ## create a fake source attribute
     mm <- match.call()
     mm$expr <- NULL
     mm[[1]] <- as.name("macro")
-    expr[[2]] <- NULL
+    expr[[2]] <- NULL # get "local" variable removal out of source
     attr(ff, "source") <- c(deparse(mm), deparse(expr))
+    ## return the macro
     ff
-}
-
-      
-"initializeDialog" <- defmacro(window=top, title="", offset=10, preventCrisp=FALSE,
-    expr={
-#        if ((!preventCrisp) && getRcmdr("crisp.dialogs")) tclServiceMode(on=FALSE)
-        window <- tktoplevel(borderwidth=10)
-#        tkwm.withdraw(window)
-        tkwm.title(window, title)
- #       position <- if (is.SciViews()) -1 else commanderPosition() # +PhG
-#        position <- if (any(position < 0)) "-50+50"
-#            else paste("+", paste(offset + position, collapse="+"), sep="")
-#        tkwm.geometry(window, position)
-        }
-    )
-
+    }
+   
 "activeDataSet" <- function (dsname) 
 {
     if (!is.data.frame(ds <- get(dsname, envir = .GlobalEnv))) {
@@ -1795,14 +1772,6 @@ else if (tk2notetab.text(nb) == "Multiple and Joint CA")
     dsname
 }
 
-"closeDialog" <- defmacro(window=top, release=TRUE,
-    expr={
- #       if (release && GrabFocus()) tkgrab.release(window)
-        tkdestroy(window)
-        }
-        
-        
-    )
 
 "trim.col.na" <- function(dat){
 # Remove variables with only missing values (occurs sometimes with modified Excel file)
