@@ -56,32 +56,15 @@
 			oldopt <- options("htmlhelp")$htmlhelp
 			tkbind(Rlabel, "<Button-1>", function() help.start())
 			options("htmlhelp" = oldopt)
-		}
-#		icnfnameTk <- file.path(paste(.libPaths()[i],"/ade4TkGUI/tcltk.gif",sep=""))
-#		if (file.exists(icnfnameTk)) {
-#			icn <- tkimage.create("photo", file=icnfnameTk)
-#			TclTklabel <- tklabel(frame1, image=icn, background="white")
-#			tkbind(TclTklabel, "<Button-1>", function() print(help("tcltk")))
-#		}
-	}
-
-#	labh <- tklabel(frame1, bitmap="questhead", background="white")
-#	tkbind(labh, "<Button-1>", function() print(help("caGUI")))
-  titre <- tklabel(frame1,text="caGUI - A GUI for the ca package", font=tkfont.create(size=13,weight="bold"), foreground="white", background="darkgreen")
-	
-#	helplab <- tklabel(frame1,text="- Right click buttons for help - Double click in lists to select -", font="Times 12", foreground="dark green", background="white")
-
-#	frameCheck <- tkframe(frame1, relief="flat", borderwidth=0, background="white")
-#	if (show) show.cbut <- tklabel(frameCheck,text="T", background="white", font="system 10") else
-#		show.cbut <- tklabel(frameCheck,text="F", background="white", font="system 10")
-#	if (history) hist.cbut <- tklabel(frameCheck,text="T", background="white", font="system 10") else
-#		hist.cbut <- tklabel(frameCheck,text="F", background="white", font="system 10")
-#	tkgrid(show.cbut, sticky = "w")
-#	tkgrid(hist.cbut, sticky = "w")
-#
-#	tkgrid(frameCheck, Rlabel, titre, labh, TclTklabel, padx=10, sticky = "w")
-	tkgrid(Rlabel, titre, padx=5, sticky = "w")
-#	tkgrid(helplab, columnspan=4)
+      tit <- tklabel(frame1,text="caGUI - A GUI for the ca package", font=tkfont.create(size=13,weight="bold"), foreground="white", background="darkgreen")
+  		tkgrid(Rlabel, tit, padx=5, sticky = "w")
+ 		}
+ #	else if 
+ #		{
+ #     tit <- tklabel(frame1,text="caGUI - A GUI for the ca package", font=tkfont.create(size=13,weight="bold"), foreground="white", background="darkgreen")
+ # 		tkgrid(tit, padx=5, sticky = "w")
+ #		}
+  }
 	tkpack(frame1, expand="TRUE",fill="x")
 
      
@@ -1715,43 +1698,7 @@ else if (tk2notetab.text(nb) == "Multiple and Joint CA")
  default = "no")
 }
 
- defmacro <- function(..., expr){
-    expr <- substitute(expr)
-    len <- length(expr)
-    expr[3:(len+1)] <- expr[2:len]
-    ## delete "macro" variables starting in ..
-    expr[[2]] <- quote(on.exit(remove(list=objects(pattern="^\\.\\.", all.names=TRUE))))
-    a <- substitute(list(...))[-1]
-    ## process the argument list
-    nn <- names(a)
-    if (is.null(nn)) nn <- rep("", length(a))
-    for (i in seq(length=length(a))){
-        if (nn[i] == "") {
-            nn[i] <- paste(a[[i]])
-            msg <- paste(a[[i]], gettext("not supplied", domain="R-Rcmdr"))
-            a[[i]] <- substitute(stop(foo), list(foo = msg))
-            }
-        }
-    names(a) <- nn
-    a <- as.list(a)
-    ff <- eval(substitute(
-        function(){
-            tmp <- substitute(body)
-            eval(tmp, parent.frame())
-            },
-        list(body = expr)))
-    ## add the argument list
-    formals(ff) <- a
-    ## create a fake source attribute
-    mm <- match.call()
-    mm$expr <- NULL
-    mm[[1]] <- as.name("macro")
-    expr[[2]] <- NULL # get "local" variable removal out of source
-    attr(ff, "source") <- c(deparse(mm), deparse(expr))
-    ## return the macro
-    ff
-    }
-   
+ 
 "activeDataSet" <- function (dsname) 
 {
     if (!is.data.frame(ds <- get(dsname, envir = .GlobalEnv))) {
